@@ -205,7 +205,7 @@ function PhoneMockup() {
         initial={{ opacity: 0, x: -24, scale: 0.9 }}
         animate={{ opacity: 1, x: 0, scale: 1 }}
         transition={{ ...SPRING, delay: 1.0 }}
-        className="absolute -left-4 sm:-left-10 top-14 z-10"
+        className="absolute -left-2 xs:-left-4 sm:-left-10 top-14 z-10"
       >
         <motion.div
           animate={{ y: [0, -5, 0] }}
@@ -236,7 +236,7 @@ function PhoneMockup() {
         initial={{ opacity: 0, x: 24, scale: 0.9 }}
         animate={{ opacity: 1, x: 0, scale: 1 }}
         transition={{ ...SPRING, delay: 1.25 }}
-        className="absolute -right-4 sm:-right-8 bottom-20 z-10"
+        className="absolute -right-2 xs:-right-4 sm:-right-8 bottom-20 z-10"
       >
         <motion.div
           animate={{ y: [0, -6, 0] }}
@@ -427,7 +427,7 @@ function HeroSection() {
         style={{ background: 'radial-gradient(circle, hsl(350 82% 60% / 0.10) 0%, transparent 60%)' }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 w-full pt-28 pb-16 lg:pt-36 lg:pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 w-full pt-24 pb-16 lg:pt-36 lg:pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-10 lg:gap-20 items-center">
 
           {/* Left: Copy */}
@@ -435,10 +435,10 @@ function HeroSection() {
             initial="hidden"
             animate="visible"
             variants={staggerContainer}
-            className="max-w-xl"
+            className="max-w-xl mx-auto lg:mx-0 text-center lg:text-left"
           >
             {/* Live badge */}
-            <motion.div variants={fadeUp} className="mb-6">
+            <motion.div variants={fadeUp} className="mb-5 flex justify-center lg:justify-start">
               <span
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider"
                 style={{
@@ -458,8 +458,8 @@ function HeroSection() {
             {/* Headline */}
             <motion.h1
               variants={fadeUp}
-              className="font-bold leading-[1.04] tracking-tight text-foreground mb-5"
-              style={{ fontSize: 'clamp(2.4rem, 5vw, 4rem)' }}
+              className="font-bold leading-[1.08] tracking-tight text-foreground mb-4"
+              style={{ fontSize: 'clamp(2.2rem, 8vw, 4rem)' }}
             >
               Smart tags.
               <br />
@@ -469,16 +469,16 @@ function HeroSection() {
             {/* Description */}
             <motion.p
               variants={fadeUp}
-              className="text-base text-muted-foreground leading-relaxed max-w-[54ch] mb-8"
+              className="text-[0.95rem] text-muted-foreground leading-relaxed mx-auto lg:mx-0 max-w-[48ch] mb-7"
             >
               Attach a WeSafe QR code to anything that matters. When someone finds it, they scan, connect, and return it — no app required, no personal info exposed.
             </motion.p>
 
             {/* CTAs */}
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-3 mb-10">
+            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 mb-8">
               <a
                 href="https://web.wesafeqr.com"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold text-white transition-all duration-200 active:scale-95 hover:-translate-y-0.5"
+                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold text-white transition-all duration-200 active:scale-95 hover:-translate-y-0.5"
                 style={{
                   background: 'hsl(var(--primary))',
                   boxShadow: '0 6px 24px hsl(237 46% 62% / 0.32), inset 0 1px 0 rgba(255,255,255,0.18)',
@@ -489,7 +489,7 @@ function HeroSection() {
               </a>
               <a
                 href="#how-it-works"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold text-foreground transition-all duration-200 hover:bg-accent/60 active:scale-95"
+                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold text-foreground transition-all duration-200 hover:bg-accent/60 active:scale-95"
                 style={{
                   background: 'hsl(var(--secondary))',
                   border: '1px solid hsl(var(--border) / 0.55)',
@@ -501,7 +501,7 @@ function HeroSection() {
             </motion.div>
 
             {/* Social proof */}
-            <motion.div variants={fadeUp} className="flex items-center gap-4 flex-wrap">
+            <motion.div variants={fadeUp} className="flex items-center justify-center lg:justify-start gap-4 flex-wrap">
               <div className="flex -space-x-2">
                 {[
                   { bg: '#6C72CC', init: 'KN' },
@@ -522,8 +522,7 @@ function HeroSection() {
                 <p className="text-sm font-bold text-foreground">47,284 items returned</p>
                 <p className="text-xs text-muted-foreground">Trusted across India</p>
               </div>
-              <div className="hidden sm:block w-px h-8 bg-border/50" />
-              <div className="hidden sm:flex items-center gap-1">
+              <div className="flex items-center gap-1">
                 {[...Array(5)].map((_, i) => (
                   <span key={i} className="material-symbols-outlined" style={{ fontSize: 14, color: '#F59E0B' }}>star</span>
                 ))}
@@ -563,14 +562,18 @@ function StatsBar() {
   return (
     <div ref={ref} className="border-y border-border/40" style={{ background: 'hsl(var(--card) / 0.55)', backdropFilter: 'blur(8px)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
-        <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-border/40">
+        <div className="grid grid-cols-2 lg:grid-cols-4">
           {STATS.map((stat, i) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 14 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ ...SPRING, delay: i * 0.1 }}
-              className="px-5 py-5 flex items-center gap-3"
+              className="px-4 sm:px-5 py-5 flex items-center gap-3"
+              style={{
+                borderRight: (i === 0 || i === 2) ? '1px solid hsl(var(--border) / 0.4)' : undefined,
+                borderBottom: i < 2 ? '1px solid hsl(var(--border) / 0.4)' : undefined,
+              }}
             >
               <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -581,8 +584,8 @@ function StatsBar() {
                 </span>
               </div>
               <div>
-                <p className="text-lg font-bold text-foreground tracking-tight leading-none">{stat.value}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{stat.label}</p>
+                <p className="text-base sm:text-lg font-bold text-foreground tracking-tight leading-none">{stat.value}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 leading-tight">{stat.label}</p>
               </div>
             </motion.div>
           ))}
@@ -887,29 +890,29 @@ const STEPS = [
 
 function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 px-4 sm:px-8">
+    <section id="how-it-works" className="py-16 sm:py-24 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto">
-        <SectionReveal className="mb-16">
+        <SectionReveal className="mb-12 sm:mb-16 text-center sm:text-left">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">How it works</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight max-w-lg leading-tight">
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight max-w-lg leading-tight mx-auto sm:mx-0">
             From lost to found in three steps
           </h2>
         </SectionReveal>
 
-        <div className="space-y-14">
+        <div className="space-y-10 sm:space-y-14">
           {STEPS.map((step, i) => {
             const isReversed = i % 2 !== 0
             const { Visual } = step
             return (
               <SectionReveal key={step.num} delay={i * 0.06}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-center">
 
                   {/* Visual panel */}
                   <div className={`order-1 ${isReversed ? 'md:order-2' : 'md:order-1'} flex justify-center`}>
                     <motion.div
                       whileHover={{ scale: 1.03, y: -6 }}
                       transition={SPRING}
-                      className="w-full max-w-[300px] aspect-square rounded-3xl overflow-hidden relative"
+                      className="w-full max-w-[340px] md:max-w-[300px] aspect-square rounded-3xl overflow-hidden relative"
                       style={{
                         background: step.bg,
                         border: `1.5px solid ${step.border}`,
@@ -928,8 +931,8 @@ function HowItWorks() {
                   </div>
 
                   {/* Copy */}
-                  <div className={`order-2 ${isReversed ? 'md:order-1' : 'md:order-2'}`}>
-                    <div className="flex items-center gap-3 mb-5">
+                  <div className={`order-2 ${isReversed ? 'md:order-1' : 'md:order-2'} text-center md:text-left`}>
+                    <div className="flex items-center justify-center md:justify-start gap-3 mb-5">
                       <div
                         className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
                         style={{
@@ -954,11 +957,11 @@ function HowItWorks() {
                       </span>
                     </div>
                     <h3 className="text-2xl font-bold text-foreground tracking-tight mb-3">{step.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed max-w-[44ch]">{step.desc}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed max-w-[44ch] mx-auto md:mx-0">{step.desc}</p>
 
                     {/* Divider line */}
                     <div
-                      className="mt-6 h-[2px] w-16 rounded-full"
+                      className="mt-6 h-[2px] w-16 rounded-full mx-auto md:mx-0"
                       style={{ background: `linear-gradient(90deg, ${step.color}, transparent)` }}
                     />
                   </div>
@@ -1004,17 +1007,17 @@ function BentoCard({ title, desc, icon, color, className = '', children }) {
 
 function FeaturesSection() {
   return (
-    <section id="features" className="py-24 px-4 sm:px-8" style={{ background: 'hsl(var(--muted) / 0.28)' }}>
+    <section id="features" className="py-16 sm:py-24 px-4 sm:px-8" style={{ background: 'hsl(var(--muted) / 0.28)' }}>
       <div className="max-w-7xl mx-auto">
-        <SectionReveal className="mb-14">
+        <SectionReveal className="mb-12 sm:mb-14 text-center sm:text-left">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Features</p>
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:justify-between">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight max-w-sm leading-tight">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight max-w-sm leading-tight mx-auto sm:mx-0">
               Everything your belongings need
             </h2>
             <a
               href="https://web.wesafeqr.com"
-              className="self-start sm:self-auto inline-flex items-center gap-1.5 text-xs font-bold transition-all duration-200 hover:gap-2.5"
+              className="inline-flex items-center justify-center sm:justify-start gap-1.5 text-xs font-bold transition-all duration-200 hover:gap-2.5"
               style={{ color: '#6C72CC' }}
             >
               Explore all features
@@ -1172,9 +1175,9 @@ const TESTIMONIALS = [
 
 function TestimonialsSection() {
   return (
-    <section id="testimonials" className="py-24 px-4 sm:px-8">
+    <section id="testimonials" className="py-16 sm:py-24 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto">
-        <SectionReveal className="mb-14">
+        <SectionReveal className="mb-12 sm:mb-14 text-center sm:text-left">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Stories</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight leading-tight">
             Real returns. Real people.
@@ -1222,11 +1225,11 @@ function TestimonialsSection() {
 
 function CTASection() {
   return (
-    <section className="py-20 px-4 sm:px-8">
+    <section className="py-14 sm:py-20 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto">
         <SectionReveal>
           <div
-            className="rounded-3xl px-8 py-14 sm:px-14 relative overflow-hidden"
+            className="rounded-3xl px-6 py-12 sm:px-14 sm:py-14 relative overflow-hidden"
             style={{
               background: 'linear-gradient(140deg, hsl(237 46% 32%) 0%, hsl(237 46% 50%) 50%, hsl(258 84% 58%) 100%)',
             }}
@@ -1245,19 +1248,19 @@ function CTASection() {
               style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 65%)' }}
             />
 
-            <div className="relative z-10 max-w-2xl">
+            <div className="relative z-10 max-w-2xl text-center sm:text-left">
               <p className="text-[10px] font-bold uppercase tracking-widest text-white/55 mb-3">Get started</p>
               <h2 className="text-3xl sm:text-[2.4rem] font-bold text-white leading-tight tracking-tight mb-4">
                 Your first 3 tags are free.
                 <br />No credit card needed.
               </h2>
-              <p className="text-sm text-white/65 leading-relaxed mb-8 max-w-[48ch]">
+              <p className="text-sm text-white/65 leading-relaxed mb-8 max-w-[48ch] mx-auto sm:mx-0">
                 Set up in under 2 minutes. Join thousands of people who never worry about losing their belongings again.
               </p>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <a
                   href="https://web.wesafeqr.com"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-white text-sm font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+                  className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white text-sm font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
                   style={{
                     color: '#6C72CC',
                     boxShadow: '0 6px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.9)',
@@ -1268,7 +1271,7 @@ function CTASection() {
                 </a>
                 <a
                   href="https://web.wesafeqr.com"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:bg-white/10 active:scale-95"
+                  className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:bg-white/10 active:scale-95"
                   style={{ border: '1px solid rgba(255,255,255,0.22)' }}
                 >
                   Learn more
@@ -1295,10 +1298,10 @@ function Footer() {
   return (
     <footer className="border-t border-border/40 px-4 sm:px-8 py-14" style={{ background: 'hsl(var(--card) / 0.45)' }}>
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-10 mb-12">
+        <div className="mb-12">
           {/* Brand */}
-          <div>
-            <div className="flex items-center gap-2.5 mb-4">
+          <div className="text-center sm:text-left mb-10">
+            <div className="flex items-center justify-center sm:justify-start gap-2.5 mb-3">
               <div
                 className="w-9 h-9 rounded-[12px] overflow-hidden flex-shrink-0"
                 style={{ boxShadow: '0 2px 8px hsl(237 46% 62% / 0.22)' }}
@@ -1307,31 +1310,34 @@ function Footer() {
               </div>
               <span className="text-sm font-bold text-foreground">WeSafe QR</span>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed max-w-[30ch]">
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-[30ch] mx-auto sm:mx-0">
               Smart QR protection for everything that matters. Lost items found and returned.
             </p>
           </div>
 
-          {Object.entries(FOOTER_LINKS).map(([group, links]) => (
-            <div key={group}>
-              <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-4">{group}</p>
-              <ul className="space-y-2.5">
-                {links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="https://web.wesafeqr.com"
-                      className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-150"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {/* Link groups — 3 columns on all screen sizes */}
+          <div className="grid grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-8">
+            {Object.entries(FOOTER_LINKS).map(([group, links]) => (
+              <div key={group}>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-4">{group}</p>
+                <ul className="space-y-2.5">
+                  {links.map((link) => (
+                    <li key={link}>
+                      <a
+                        href="https://web.wesafeqr.com"
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-150"
+                      >
+                        {link}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-8 border-t border-border/40">
+        <div className="flex flex-col items-center sm:flex-row sm:items-center justify-between gap-3 pt-8 border-t border-border/40">
           <p className="text-[10px] text-muted-foreground">
             © 2026 WeSafe QR. All rights reserved.
           </p>
