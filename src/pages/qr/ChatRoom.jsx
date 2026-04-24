@@ -1,132 +1,130 @@
-import { useEffect, useRef, useState } from 'react'
-import { useParams, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { useParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import {
   getOrCreateRoom,
   sendMessage,
   subscribeMessages,
+  verifyOwnerToken,
+  sendOwnerWhatsAppNotification,
 } from '../../services/chatService'
 
-const PRIMARY = 'hsl(237 46% 62%)'
-const PRIMARY_BG = 'hsl(237 46% 62% / 0.10)'
-const PRIMARY_BORDER = 'hsl(237 46% 62% / 0.20)'
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatTime(ts) {
+  if (!ts) return ''
+  const date = ts.toDate ? ts.toDate() : new Date(ts)
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
 
 // ─── Message bubble ────────────────────────────────────────────────────────────
 
-function MessageBubble({ msg, index }) {
-  const isOwner = msg.senderType === 'owner'
+function MessageBubble({ msg, isSelf }) {
+  const time = formatTime(msg.createdAt)
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.035, duration: 0.28 }}
-      className={`flex ${isOwner ? 'justify-start' : 'justify-end'} mb-3`}
-    >
-      <div className="flex flex-col max-w-[78%]">
-        <span className={`text-[10px] font-semibold mb-1 ${isOwner ? 'text-left' : 'text-right'} text-muted-foreground`}>
-          {isOwner ? 'Owner' : 'You'}
-        </span>
+    <div className={`flex ${isSelf ? 'justify-end' : 'justify-start'} mb-1.5`}>
+      <div className="max-w-[78%]">
         <div
-          className="px-4 py-2.5 text-[14px] leading-relaxed"
+          className="px-3.5 py-2 text-[14px] leading-relaxed"
           style={
-            isOwner
+            isSelf
               ? {
-                  background: PRIMARY_BG,
-                  color: 'hsl(var(--foreground))',
-                  border: `1px solid ${PRIMARY_BORDER}`,
-                  borderRadius: '16px 16px 16px 4px',
+                  background: '#DCF8C6',
+                  color: '#111',
+                  borderRadius: '12px 12px 3px 12px',
+                  boxShadow: '0 1px 1px rgba(0,0,0,0.1)',
                 }
               : {
-                  background: 'hsl(var(--muted))',
-                  color: 'hsl(var(--foreground))',
-                  border: '1px solid hsl(var(--border) / 0.5)',
-                  borderRadius: '16px 16px 4px 16px',
+                  background: '#fff',
+                  color: '#111',
+                  borderRadius: '12px 12px 12px 3px',
+                  boxShadow: '0 1px 1px rgba(0,0,0,0.1)',
                 }
           }
         >
           {msg.text}
+          <span className="ml-2 text-[10px] text-gray-400 float-right mt-1 select-none">{time}</span>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
-// ─── Claimed screen ────────────────────────────────────────────────────────────
+// ─── Chat background pattern ───────────────────────────────────────────────────
 
-function ClaimedScreen({ wordFromOwner, onBack }) {
-  return (
-    <div className="flex flex-col items-center justify-center flex-1 px-6 text-center">
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-        className="w-20 h-20 rounded-[24px] flex items-center justify-center mb-5"
-        style={{ background: 'hsl(38 88% 50% / 0.12)' }}
-      >
-        <span className="material-symbols-outlined filled text-5xl" style={{ color: '#F59E0B' }}>group</span>
-      </motion.div>
-      <h2 className="text-xl font-bold tracking-tight mb-2">Already in Contact</h2>
-      <p className="text-muted-foreground text-[14px] max-w-xs mb-6 leading-relaxed">
-        Someone else is already in contact with the owner about this item. The owner's message is shown below.
-      </p>
-      {wordFromOwner && (
-        <div
-          className="w-full max-w-sm rounded-2xl px-5 py-4 mb-6 text-left"
-          style={{
-            background: 'hsl(38 88% 50% / 0.08)',
-            border: '1px solid hsl(38 88% 50% / 0.22)',
-          }}
-        >
-          <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: '#F59E0B' }}>Owner's Message</p>
-          <p className="text-[14px] text-foreground leading-relaxed">"{wordFromOwner}"</p>
-        </div>
-      )}
-      <button
-        onClick={onBack}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border/70 text-[14px] font-semibold text-foreground hover:bg-accent active:scale-[0.97] transition-all"
-      >
-        <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-        Back to Item
-      </button>
-    </div>
-  )
+const chatBgStyle = {
+  backgroundColor: '#e5ddd5',
+  backgroundImage:
+    "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8b8a2' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
 }
 
 // ─── Main chat room ────────────────────────────────────────────────────────────
 
 export default function ChatRoom() {
-  const { passcode } = useParams()
+  const { passcode, roomId: roomIdParam } = useParams()
   const { state: navState } = useLocation()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   const itemName = navState?.itemName || 'Item'
   const wordFromOwner = navState?.wordFromOwner || ''
   const ownerName = navState?.ownerName || 'Owner'
+  const ownerPhone = navState?.ownerPhone || ''
+  const otParam = searchParams.get('ot')
 
   const [roomState, setRoomState] = useState('loading')
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
+  const [senderRole, setSenderRole] = useState('responder')
+  // Active roomId used for all Firestore reads/writes
+  const [activeRoomId, setActiveRoomId] = useState(roomIdParam || null)
+
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
   const unsubRef = useRef(null)
+
+  const buildOwnerChatUrl = useCallback((pid, rid, oat) => {
+    return `${window.location.origin}/qr/${pid}/chat/${rid}?ot=${oat}`
+  }, [])
 
   useEffect(() => {
     if (!passcode) return
 
     async function init() {
       try {
-        const result = await getOrCreateRoom(passcode, null, wordFromOwner)
-
-        if (result.status === 'claimed') {
-          setRoomState('claimed')
-          return
+        // ── Owner path: opened via WhatsApp link with ?ot= token ──────────────
+        if (otParam && roomIdParam) {
+          const valid = await verifyOwnerToken(roomIdParam, otParam)
+          if (valid) {
+            setSenderRole('owner')
+            setActiveRoomId(roomIdParam)
+            unsubRef.current = subscribeMessages(roomIdParam, setMessages)
+            setRoomState('open')
+            return
+          }
+          // Invalid token — fall through to finder flow
         }
 
-        unsubRef.current = subscribeMessages(passcode, (msgs) => {
-          setMessages(msgs)
-        })
+        // ── Finder path: every finder gets their own room ─────────────────────
+        const result = await getOrCreateRoom(passcode, null, wordFromOwner)
+        const rid = result.roomId
+
+        setActiveRoomId(rid)
+
+        // Send WhatsApp BEFORE navigate so it fires on the original mount
+        if (result.status === 'created' && rid) {
+          const ownerChatUrl = buildOwnerChatUrl(passcode, rid, result.ownerAccessToken)
+          sendOwnerWhatsAppNotification(ownerPhone, ownerChatUrl, itemName, ownerName)
+        }
+
+        // Push the unique roomId into the URL (replace so back-button skips this step)
+        if (rid && !roomIdParam) {
+          navigate(`/qr/${passcode}/chat/${rid}`, { replace: true, state: navState })
+        }
+
+        unsubRef.current = subscribeMessages(rid, setMessages)
         setRoomState('open')
       } catch {
         toast.error('Could not open chat room.')
@@ -136,7 +134,8 @@ export default function ChatRoom() {
 
     init()
     return () => { unsubRef.current?.() }
-  }, [passcode, wordFromOwner])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passcode])
 
   useEffect(() => {
     if (roomState === 'open') {
@@ -146,11 +145,11 @@ export default function ChatRoom() {
 
   const handleSend = async () => {
     const text = input.trim()
-    if (!text || sending) return
+    if (!text || sending || !activeRoomId) return
     setSending(true)
     setInput('')
     try {
-      await sendMessage(passcode, text, 'responder')
+      await sendMessage(activeRoomId, text, senderRole)
     } catch {
       toast.error('Failed to send message.')
       setInput(text)
@@ -167,88 +166,82 @@ export default function ChatRoom() {
     }
   }
 
-  return (
-    <div className="flex flex-col h-[100dvh] bg-background">
+  const isOwnerView = senderRole === 'owner'
 
-      {/* ── Header — matches WeSafe rewamp Header.jsx exactly ── */}
+  return (
+    <div className="flex flex-col h-[100dvh]" style={{ background: '#f0f2f5' }}>
+
+      {/* ── Header ── */}
       <header
-        className="flex-shrink-0 flex items-center h-14 px-4 gap-3"
-        style={{
-          background: 'hsl(var(--background) / 0.88)',
-          backdropFilter: 'blur(24px) saturate(200%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(200%)',
-          borderBottom: '1px solid hsl(var(--border) / 0.7)',
-          boxShadow: '0 1px 0 hsl(var(--border) / 0.6), 0 2px 8px hsl(var(--foreground) / 0.03)',
-        }}
+        className="flex-shrink-0 flex items-center h-[60px] px-3 gap-3"
+        style={{ background: '#075E54', color: '#fff' }}
       >
-        {/* Back button */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center justify-center w-9 h-9 -ml-1 rounded-xl hover:bg-accent active:scale-95 transition-all duration-150 flex-shrink-0"
+          className="flex items-center justify-center w-9 h-9 -ml-1 rounded-full hover:bg-white/10 active:bg-white/20 transition-all duration-150 flex-shrink-0"
           aria-label="Go back"
         >
-          <span className="material-symbols-outlined text-[20px] text-foreground">arrow_back_ios</span>
+          <span className="material-symbols-outlined text-[20px] text-white">arrow_back_ios</span>
         </button>
 
-        {/* Chat icon */}
         <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: PRIMARY_BG }}
+          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-[17px] font-bold"
+          style={{ background: '#128C7E', color: '#fff' }}
         >
-          <span className="material-symbols-outlined filled text-[18px]" style={{ color: PRIMARY }}>chat</span>
+          {(ownerName || 'O').slice(0, 1).toUpperCase()}
         </div>
 
-        {/* Title */}
         <div className="flex-1 min-w-0">
-          <p className="text-[15px] font-bold text-foreground leading-tight truncate">{itemName}</p>
-          <p className="text-[11px] text-muted-foreground leading-tight">Chat with {ownerName}</p>
+          <p className="text-[15px] font-semibold text-white leading-tight truncate">
+            {isOwnerView ? 'Finder' : ownerName}
+          </p>
+          <p className="text-[11px] leading-tight" style={{ color: '#ACE1DA' }}>
+            {isOwnerView ? 'Someone found your item' : `About: ${itemName}`}
+          </p>
         </div>
 
-        {/* Secure badge */}
-        <div
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[10px] font-bold flex-shrink-0"
-          style={{ background: 'hsl(160 76% 38% / 0.10)', color: '#10B981', border: '1px solid hsl(160 76% 38% / 0.22)' }}
-        >
-          <span className="material-symbols-outlined filled" style={{ fontSize: 11 }}>lock</span>
-          Secure
-        </div>
+        {isOwnerView ? (
+          <div
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold flex-shrink-0"
+            style={{ background: '#128C7E', color: '#fff' }}
+          >
+            <span className="material-symbols-outlined filled" style={{ fontSize: 11 }}>verified</span>
+            Owner
+          </div>
+        ) : (
+          <div
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold flex-shrink-0"
+            style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}
+          >
+            <span className="material-symbols-outlined filled" style={{ fontSize: 11 }}>lock</span>
+            Secure
+          </div>
+        )}
       </header>
 
       {/* ── Body ── */}
       <AnimatePresence mode="wait">
 
-        {/* Loading */}
         {roomState === 'loading' && (
           <motion.div
             key="loading"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="flex-1 flex flex-col items-center justify-center gap-3"
+            style={{ background: '#e5ddd5' }}
           >
             <div
               className="w-10 h-10 rounded-full animate-spin"
-              style={{ border: '2.5px solid hsl(237 46% 62% / 0.2)', borderTopColor: PRIMARY }}
+              style={{ border: '2.5px solid rgba(7,94,84,0.2)', borderTopColor: '#075E54' }}
             />
-            <p className="text-[14px] text-muted-foreground">Opening secure chat…</p>
+            <p className="text-[14px] text-gray-500">Opening secure chat…</p>
           </motion.div>
         )}
 
-        {/* Claimed */}
-        {roomState === 'claimed' && (
-          <motion.div
-            key="claimed"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="flex-1 flex flex-col"
-          >
-            <ClaimedScreen wordFromOwner={wordFromOwner} onBack={() => navigate(-1)} />
-          </motion.div>
-        )}
-
-        {/* Error */}
         {roomState === 'error' && (
           <motion.div
             key="error"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-5"
+            className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-5 bg-background"
           >
             <div
               className="w-16 h-16 rounded-[20px] flex items-center justify-center"
@@ -269,7 +262,6 @@ export default function ChatRoom() {
           </motion.div>
         )}
 
-        {/* Open chat */}
         {roomState === 'open' && (
           <motion.div
             key="open"
@@ -278,71 +270,72 @@ export default function ChatRoom() {
           >
             {/* Notice strip */}
             <div
-              className="flex-shrink-0 flex items-center gap-2 px-4 py-2 text-[11px] text-muted-foreground"
-              style={{
-                background: 'hsl(197 84% 44% / 0.06)',
-                borderBottom: '1px solid hsl(var(--border) / 0.5)',
-              }}
+              className="flex-shrink-0 flex items-center gap-2 px-4 py-1.5 text-[11px] justify-center"
+              style={{ background: '#FFF3CD', borderBottom: '1px solid #FFD966' }}
             >
-              <span className="material-symbols-outlined filled text-[13px]" style={{ color: '#06B6D4' }}>info</span>
-              Owner will be notified when you send a message
+              <span className="material-symbols-outlined filled text-[13px]" style={{ color: '#856404' }}>lock</span>
+              <span style={{ color: '#856404' }}>
+                {isOwnerView
+                  ? 'You are chatting as the item owner'
+                  : 'End-to-end secured · Owner will be notified'}
+              </span>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 no-scrollbar">
+            <div className="flex-1 overflow-y-auto px-3 py-3 no-scrollbar" style={chatBgStyle}>
               {messages.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
+                <div className="flex items-center justify-center h-full">
                   <div
-                    className="w-14 h-14 rounded-[18px] flex items-center justify-center"
-                    style={{ background: PRIMARY_BG }}
+                    className="px-4 py-2 rounded-xl text-[12px] text-center"
+                    style={{ background: 'rgba(255,255,255,0.7)', color: '#555', maxWidth: 220 }}
                   >
-                    <span className="material-symbols-outlined filled text-[30px]" style={{ color: PRIMARY }}>chat_bubble</span>
+                    {isOwnerView
+                      ? 'The finder will message you shortly.'
+                      : 'Send a message to start the conversation'}
                   </div>
-                  <p className="text-[14px] text-muted-foreground max-w-[180px] leading-relaxed">
-                    Send a message to start the conversation
-                  </p>
                 </div>
               )}
-              {messages.map((msg, i) => (
-                <MessageBubble key={msg.id} msg={msg} index={i} />
-              ))}
+              {messages.map((msg) => {
+                const isSelf =
+                  (isOwnerView && msg.senderType === 'owner') ||
+                  (!isOwnerView && msg.senderType === 'responder')
+                return <MessageBubble key={msg.id} msg={msg} isSelf={isSelf} />
+              })}
               <div ref={bottomRef} />
             </div>
 
             {/* Input bar */}
             <div
-              className="flex-shrink-0 flex items-end gap-2.5 px-4 py-3 border-t border-border/60"
-              style={{ background: 'hsl(var(--background))' }}
+              className="flex-shrink-0 flex items-end gap-2 px-3 py-2"
+              style={{ background: '#f0f2f5', borderTop: '1px solid #d1d7db' }}
             >
               <textarea
                 ref={inputRef}
                 rows={1}
-                placeholder="Type a message…"
+                placeholder="Type a message"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="flex-1 resize-none rounded-2xl border border-border/60 bg-card px-4 py-3 text-[14px] leading-relaxed focus:outline-none focus:ring-2 max-h-[120px] overflow-y-auto"
+                className="flex-1 resize-none px-4 py-2.5 text-[14px] leading-relaxed focus:outline-none max-h-[120px] overflow-y-auto"
                 style={{
-                  minHeight: 46,
-                  '--tw-ring-color': 'hsl(237 46% 62% / 0.25)',
+                  minHeight: 42,
+                  background: '#fff',
+                  borderRadius: 24,
+                  border: '1px solid #d1d7db',
+                  color: '#111',
                 }}
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || sending}
-                className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all active:scale-[0.94] disabled:opacity-40"
-                style={{
-                  background: 'linear-gradient(135deg, hsl(237 46% 50%) 0%, hsl(237 46% 64%) 100%)',
-                  boxShadow: input.trim()
-                    ? '0 4px 14px hsl(237 46% 62% / 0.38), inset 0 1px 0 rgba(255,255,255,0.18)'
-                    : 'none',
-                }}
+                className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-[0.94] disabled:opacity-40"
+                style={{ background: '#075E54' }}
                 aria-label="Send message"
               >
                 {sending ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <span className="material-symbols-outlined filled text-white" style={{ fontSize: 18 }}>send</span>
+                  <span className="material-symbols-outlined filled text-white" style={{ fontSize: 20 }}>send</span>
                 )}
               </button>
             </div>

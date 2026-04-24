@@ -66,6 +66,7 @@ export default function LostFoundLanding({ passcode, qrData, itemData, ownerCont
         itemName,
         ownerName,
         wordFromOwner,
+        ownerPhone: phone,
         qrType: 'lostAndFound',
         ownerUid: null,
       },

@@ -23,6 +23,7 @@ export default function App() {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/qr/:passcode/chat/:roomId" element={<ChatRoom />} />
         <Route path="/qr/:passcode/chat" element={<ChatRoom />} />
         <Route path="/qr/:passcode" element={<QRLandingPage />} />
         <Route

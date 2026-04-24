@@ -83,6 +83,7 @@ export default function CarsLanding({ passcode, qrData, itemData, ownerContact }
         itemName: vehicleLabel,
         ownerName,
         wordFromOwner,
+        ownerPhone: phone,
         qrType: 'cars',
         ownerUid: null,
       },
