@@ -3,9 +3,9 @@
   "short_name": "WeSafe QR",
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "/logo1.png",
       "sizes": "any",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
