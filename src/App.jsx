@@ -26,6 +26,7 @@ export default function App() {
         <Route path="/qr/:passcode/chat/:roomId" element={<ChatRoom />} />
         <Route path="/qr/:passcode/chat" element={<ChatRoom />} />
         <Route path="/qr/:passcode" element={<QRLandingPage />} />
+        <Route path="/:passcode" element={<QRLandingPage />} />
         <Route
           path="*"
           element={<ExternalRedirect to="https://web.wesafeqr.com" />}
