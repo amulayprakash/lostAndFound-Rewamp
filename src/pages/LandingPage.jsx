@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, memo } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 
 // ─── Animation presets ────────────────────────────────────────────────────────
@@ -20,9 +20,19 @@ const staggerContainer = {
 function useScrolled() {
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 24)
+    let rafId = null
+    const handler = () => {
+      if (rafId) return
+      rafId = requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 24)
+        rafId = null
+      })
+    }
     window.addEventListener('scroll', handler, { passive: true })
-    return () => window.removeEventListener('scroll', handler)
+    return () => {
+      window.removeEventListener('scroll', handler)
+      if (rafId) cancelAnimationFrame(rafId)
+    }
   }, [])
   return scrolled
 }
@@ -67,7 +77,7 @@ const NAV_LINKS = [
   { label: 'Stories', href: '#testimonials' },
 ]
 
-function NavBar() {
+const NavBar = memo(function NavBar() {
   const scrolled = useScrolled()
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -173,14 +183,14 @@ function NavBar() {
       </div>
     </motion.header>
   )
-}
+})
 
 // ─── Phone Mockup (Hero Visual) ───────────────────────────────────────────────
 
 function ScanLine() {
   return (
     <motion.div
-      className="absolute left-5 right-5 h-[2px] rounded-full pointer-events-none"
+      className="absolute left-5 right-5 h-[2px] rounded-full pointer-events-none animate-gpu"
       style={{
         top: '18%',
         background: 'linear-gradient(90deg, transparent, hsl(237 46% 62% / 0.9), transparent)',
@@ -191,7 +201,7 @@ function ScanLine() {
   )
 }
 
-function PhoneMockup() {
+const PhoneMockup = memo(function PhoneMockup() {
   return (
     <div className="relative flex items-center justify-center py-8">
       {/* Ambient glow */}
@@ -210,7 +220,7 @@ function PhoneMockup() {
         <motion.div
           animate={{ y: [0, -5, 0] }}
           transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
-          className="flex items-center gap-2.5 pl-2.5 pr-3.5 py-2 rounded-2xl"
+          className="flex items-center gap-2.5 pl-2.5 pr-3.5 py-2 rounded-2xl animate-gpu"
           style={{
             background: 'hsl(var(--card) / 0.95)',
             backdropFilter: 'blur(16px)',
@@ -241,7 +251,7 @@ function PhoneMockup() {
         <motion.div
           animate={{ y: [0, -6, 0] }}
           transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }}
-          className="flex items-center gap-2.5 pl-2.5 pr-3.5 py-2 rounded-2xl"
+          className="flex items-center gap-2.5 pl-2.5 pr-3.5 py-2 rounded-2xl animate-gpu"
           style={{
             background: 'hsl(var(--card) / 0.95)',
             backdropFilter: 'blur(16px)',
@@ -266,7 +276,7 @@ function PhoneMockup() {
       <motion.div
         animate={{ y: [0, -10, 0] }}
         transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
-        className="relative w-[210px] h-[430px] rounded-[40px] overflow-hidden"
+        className="relative w-[210px] h-[430px] rounded-[40px] overflow-hidden animate-gpu"
         style={{
           background: '#ffffff',
           border: '7px solid hsl(237 40% 12% / 0.09)',
@@ -409,7 +419,7 @@ function PhoneMockup() {
       </motion.div>
     </div>
   )
-}
+})
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
@@ -555,7 +565,7 @@ const STATS = [
   { value: '12 cities', label: 'Active across India', icon: 'location_on', color: '#F03758' },
 ]
 
-function StatsBar() {
+const StatsBar = memo(function StatsBar() {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true })
 
@@ -593,7 +603,7 @@ function StatsBar() {
       </div>
     </div>
   )
-}
+})
 
 // ─── How It Works — step SVG animations ──────────────────────────────────────
 
@@ -636,27 +646,24 @@ function QRTagScene() {
             {/* Finder BL */}
             <rect x="3" y="71" width="32" height="32" rx="5" stroke="#6C72CC" strokeWidth="3" />
             <rect x="10" y="78" width="18" height="18" rx="2" fill="#6C72CC" />
-            {/* Data dots — center block */}
-            {[
-              [42,3],[50,3],[58,3],[42,11],[58,11],[42,19],[50,19],[58,19],[42,27],[50,27],[42,35],[50,35],[58,35],
-              [42,43],[50,43],[58,43],[66,43],[74,43],[82,43],[90,43],[98,43],
-              [42,51],[58,51],[66,51],[82,51],[98,51],
-              [42,59],[50,59],[58,59],[74,59],[82,59],[90,59],
-              [42,67],[58,67],[66,67],[90,67],[98,67],
-              [42,75],[50,75],[66,75],[74,75],[82,75],[98,75],
-              [42,83],[58,83],[66,83],[74,83],[90,83],
-              [42,91],[50,91],[58,91],[66,91],[82,91],[90,91],[98,91],
-              [3,43],[11,43],[19,43],[27,43],[35,43],[3,51],[19,51],[27,51],[35,51],
-              [3,59],[11,59],[27,59],[3,67],[11,67],[19,67],[27,67],[35,67],
-              [3,75],[19,75],[27,75],[3,83],[11,83],[19,83],[35,83],[3,91],[11,91],[27,91],[35,91],
-            ].map(([x, y], idx) => (
-              <motion.rect
-                key={idx} x={x} y={y} width="6" height="6" rx="1" fill="#6C72CC"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 + idx * 0.008, duration: 0.18, ease: 'easeOut' }}
-              />
-            ))}
+            {/* Data dots — CSS fade-in instead of 90 individual Framer Motion instances */}
+            <g className="qr-dots-animate">
+              {[
+                [42,3],[50,3],[58,3],[42,11],[58,11],[42,19],[50,19],[58,19],[42,27],[50,27],[42,35],[50,35],[58,35],
+                [42,43],[50,43],[58,43],[66,43],[74,43],[82,43],[90,43],[98,43],
+                [42,51],[58,51],[66,51],[82,51],[98,51],
+                [42,59],[50,59],[58,59],[74,59],[82,59],[90,59],
+                [42,67],[58,67],[66,67],[90,67],[98,67],
+                [42,75],[50,75],[66,75],[74,75],[82,75],[98,75],
+                [42,83],[58,83],[66,83],[74,83],[90,83],
+                [42,91],[50,91],[58,91],[66,91],[82,91],[90,91],[98,91],
+                [3,43],[11,43],[19,43],[27,43],[35,43],[3,51],[19,51],[27,51],[35,51],
+                [3,59],[11,59],[27,59],[3,67],[11,67],[19,67],[27,67],[35,67],
+                [3,75],[19,75],[27,75],[3,83],[11,83],[19,83],[35,83],[3,91],[11,91],[27,91],[35,91],
+              ].map(([x, y], idx) => (
+                <rect key={idx} x={x} y={y} width="6" height="6" rx="1" fill="#6C72CC" />
+              ))}
+            </g>
           </svg>
         </motion.div>
 
@@ -692,6 +699,7 @@ function ScannerScene() {
         <motion.div
           animate={{ y: [0, -6, 0] }}
           transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+          className="animate-gpu"
           style={{
             width: 120, height: 160, borderRadius: 20,
             background: '#1a1a2e',
@@ -740,6 +748,7 @@ function ScannerScene() {
 
             {/* Scan line */}
             <motion.div
+              className="animate-gpu"
               style={{
                 position: 'absolute', left: 10, right: 10, height: 2, borderRadius: 1,
                 background: 'linear-gradient(90deg, transparent, #8B5CF6, transparent)',
@@ -888,7 +897,7 @@ const STEPS = [
   },
 ]
 
-function HowItWorks() {
+const HowItWorks = memo(function HowItWorks() {
   return (
     <section id="how-it-works" className="py-16 sm:py-24 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto">
@@ -973,7 +982,7 @@ function HowItWorks() {
       </div>
     </section>
   )
-}
+})
 
 // ─── Features Bento ───────────────────────────────────────────────────────────
 
@@ -1005,7 +1014,7 @@ function BentoCard({ title, desc, icon, color, className = '', children }) {
   )
 }
 
-function FeaturesSection() {
+const FeaturesSection = memo(function FeaturesSection() {
   return (
     <section id="features" className="py-16 sm:py-24 px-4 sm:px-8" style={{ background: 'hsl(var(--muted) / 0.28)' }}>
       <div className="max-w-7xl mx-auto">
@@ -1142,7 +1151,7 @@ function FeaturesSection() {
       </div>
     </section>
   )
-}
+})
 
 // ─── Testimonials ─────────────────────────────────────────────────────────────
 
@@ -1173,7 +1182,7 @@ const TESTIMONIALS = [
   },
 ]
 
-function TestimonialsSection() {
+const TestimonialsSection = memo(function TestimonialsSection() {
   return (
     <section id="testimonials" className="py-16 sm:py-24 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto">
@@ -1219,11 +1228,11 @@ function TestimonialsSection() {
       </div>
     </section>
   )
-}
+})
 
 // ─── CTA Band ─────────────────────────────────────────────────────────────────
 
-function CTASection() {
+const CTASection = memo(function CTASection() {
   return (
     <section className="py-14 sm:py-20 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto">
@@ -1284,7 +1293,7 @@ function CTASection() {
       </div>
     </section>
   )
-}
+})
 
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
@@ -1294,7 +1303,7 @@ const FOOTER_LINKS = {
   Legal: ['Privacy Policy', 'Terms of Service', 'Cookie Policy'],
 }
 
-function Footer() {
+const Footer = memo(function Footer() {
   return (
     <footer className="border-t border-border/40 px-4 sm:px-8 py-14" style={{ background: 'hsl(var(--card) / 0.45)' }}>
       <div className="max-w-7xl mx-auto">
@@ -1306,7 +1315,7 @@ function Footer() {
                 className="w-9 h-9 rounded-[12px] overflow-hidden flex-shrink-0"
                 style={{ boxShadow: '0 2px 8px hsl(237 46% 62% / 0.22)' }}
               >
-                <img src="/logo1.png" alt="WeSafe QR" className="w-full h-full object-contain" />
+                <img src="/logo1.png" alt="WeSafe QR" className="w-full h-full object-contain" loading="lazy" />
               </div>
               <span className="text-sm font-bold text-foreground">WeSafe QR</span>
             </div>
@@ -1355,7 +1364,7 @@ function Footer() {
       </div>
     </footer>
   )
-}
+})
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 

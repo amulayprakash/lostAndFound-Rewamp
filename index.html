@@ -8,10 +8,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WeSafe QR — Smart Lost & Found Protection</title>
     <meta name="description" content="Attach a WeSafe QR tag to anything that matters. When someone finds it, they connect with you instantly — no app needed, no personal info shared." />
+
+    <!-- Preconnect to speed up font negotiation -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Roboto: critical for first paint, loaded normally with font-display:swap -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
+
+    <!-- Material Icons: not needed for LCP, load async via print→all trick -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
+    </noscript>
   </head>
   <body>
     <div id="root"></div>

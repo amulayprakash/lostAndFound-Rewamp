@@ -129,6 +129,22 @@
   }
 }
 
+/* ─── Performance Animations ────────────────────────────────────────────────── */
+@keyframes fadeInDots {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Used by QR dot grids — single animation instead of 90 Framer Motion instances */
+.qr-dots-animate {
+  animation: fadeInDots 0.45s 0.2s ease-out both;
+}
+
+/* Compositing hint for elements with continuous transform animations */
+.animate-gpu {
+  will-change: transform;
+}
+
 /* ─── Utility Classes ───────────────────────────────────────────────────────── */
 @layer utilities {
   /* Tactile press scale (use on interactive Link/div wrappers) */
