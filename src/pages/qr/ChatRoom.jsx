@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
@@ -7,7 +7,6 @@ import {
   sendMessage,
   subscribeMessages,
   verifyOwnerToken,
-  sendOwnerWhatsAppNotification,
 } from '../../services/chatService'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -70,7 +69,6 @@ export default function ChatRoom() {
   const itemName = navState?.itemName || 'Item'
   const wordFromOwner = navState?.wordFromOwner || ''
   const ownerName = navState?.ownerName || 'Owner'
-  const ownerPhone = navState?.ownerPhone || ''
   const otParam = searchParams.get('ot')
 
   const [roomState, setRoomState] = useState('loading')
@@ -84,10 +82,6 @@ export default function ChatRoom() {
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
   const unsubRef = useRef(null)
-
-  const buildOwnerChatUrl = useCallback((pid, rid, oat) => {
-    return `${window.location.origin}/qr/${pid}/chat/${rid}?ot=${oat}`
-  }, [])
 
   useEffect(() => {
     if (!passcode) return
@@ -112,12 +106,6 @@ export default function ChatRoom() {
         const rid = result.roomId
 
         setActiveRoomId(rid)
-
-        // Send WhatsApp BEFORE navigate so it fires on the original mount
-        if (result.status === 'created' && rid) {
-          const ownerChatUrl = buildOwnerChatUrl(passcode, rid, result.ownerAccessToken)
-          sendOwnerWhatsAppNotification(ownerPhone, ownerChatUrl, itemName, ownerName)
-        }
 
         // Push the unique roomId into the URL (replace so back-button skips this step)
         if (rid && !roomIdParam) {

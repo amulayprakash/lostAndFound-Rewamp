@@ -71,7 +71,10 @@ export default function CarsLanding({ passcode, qrData, itemData, ownerContact }
   const vehicleLabel = itemData?.ownerName || qrData?.name || vehicleType
   const wordFromOwner = itemData?.wordFromOwner || qrData?.wordFromOwner || ''
   const ownerName = ownerContact?.name || itemData?.ownerName || qrData?.ownerName || 'Owner'
-  const phone = ownerContact?.phone || ''
+  const phone =
+    ownerContact?.phone ||
+    itemData?.phone || itemData?.['Phone'] || itemData?.['Phone Number'] || itemData?.['Mobile'] ||
+    qrData?.phone || qrData?.['Phone'] || ''
 
   const handleCall = () => {
     if (phone) window.location.href = `tel:${phone}`

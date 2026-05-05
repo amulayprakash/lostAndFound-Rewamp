@@ -7,6 +7,7 @@ import {
   fetchOwnerContact,
   parseUserID,
 } from '../../services/qrLandingService'
+import { getOrCreateRoom, sendQRScanNotification } from '../../services/chatService'
 import LostFoundLanding from './LostFoundLanding'
 import CarsLanding from './CarsLanding'
 
@@ -175,6 +176,25 @@ export default function QRLandingPage() {
         setItemData(item ?? null)
         setOwnerContact(contact)
         setState('valid')
+
+        if (cancelled) return
+
+        // Create the chat room now so the owner gets the join link immediately on scan
+        const wordFromOwner = item?.wordFromOwner || qr?.wordFromOwner || ''
+        const roomResult = await getOrCreateRoom(passcode, null, wordFromOwner)
+
+        if (cancelled) return
+
+        if (roomResult?.roomId && roomResult?.ownerAccessToken) {
+          const ownerChatUrl =
+            `${window.location.origin}/qr/${passcode}/chat/${roomResult.roomId}?ot=${roomResult.ownerAccessToken}`
+          const phone =
+            contact?.phone ||
+            item?.phone || item?.['Phone'] || item?.['Phone Number'] || item?.['Mobile'] || ''
+          const itemName = item?.ownerName || item?.itemTypeName || qr?.name || qr?.qrType || 'Item'
+          const ownerName = contact?.name || item?.ownerName || qr?.ownerName || ''
+          sendQRScanNotification(phone, ownerChatUrl, itemName, ownerName)
+        }
       } catch (err) {
         if (!cancelled) {
           setErrorMsg(err.message || 'Could not load QR details.')

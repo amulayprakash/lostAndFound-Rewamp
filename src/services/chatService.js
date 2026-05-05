@@ -102,35 +102,55 @@ export async function verifyOwnerToken(roomId, token) {
  * Sends a professional WhatsApp message to the item owner with the unique chat link.
  * Fire-and-forget — errors are swallowed to not block the chat flow.
  */
+function normalisePhone(phone) {
+  const cleaned = phone.replace(/[\s\-\+]/g, '')
+  return cleaned.startsWith('91') && cleaned.length > 10 ? cleaned.slice(2) : cleaned
+}
+
+function dispatchWhatsApp(normalised, message) {
+  const token = import.meta.env.VITE_WHATSAPP_USER_ID
+  const url =
+    `https://wts.vision360solutions.co.in/api/sendText` +
+    `?token=${token}&phone=91${normalised}&message=${encodeURIComponent(message)}`
+  console.log('[WeSafe] Dispatching WhatsApp to 91' + normalised)
+  fetch(url)
+    .then(async r => {
+      const body = await r.text().catch(() => '')
+      console.log('[WeSafe] WhatsApp response:', r.status, body)
+    })
+    .catch(err => console.error('[WeSafe] WhatsApp fetch error:', err))
+}
+
+export function sendQRScanNotification(phone, chatUrl, itemName, ownerName) {
+  if (!phone) {
+    console.warn('[WeSafe] QR scan WhatsApp skipped — no phone number available')
+    return
+  }
+  const normalised = normalisePhone(phone)
+  const name = ownerName || 'there'
+  const item = itemName || 'your item'
+  const message =
+    `Hello ${name}, your WeSafe QR code attached to *"${item}"* was just scanned.\n\n` +
+    `Someone nearby may have found your item. Tap the link below to open a private, secure chat with them and arrange its return:\n\n` +
+    `${chatUrl}\n\n` +
+    `This link is unique to you — only you can access the owner side of this chat. No personal details are shared with the finder.\n\n` +
+    `_WeSafe QR — protecting what matters._`
+  dispatchWhatsApp(normalised, message)
+}
+
 export function sendOwnerWhatsAppNotification(phone, chatUrl, itemName, ownerName) {
   if (!phone) {
     console.warn('[WeSafe] WhatsApp skipped — no phone number available')
     return
   }
-
-  // Normalise: strip leading +, spaces, dashes then strip country code 91 if present
-  const cleaned = phone.replace(/[\s\-\+]/g, '')
-  const normalised = cleaned.startsWith('91') && cleaned.length > 10
-    ? cleaned.slice(2)
-    : cleaned
-
+  const normalised = normalisePhone(phone)
   const name = ownerName || 'there'
   const item = itemName || 'your item'
   const message =
     `Hello ${name}! Someone has found your item *"${item}"* and wants to return it to you.\n\n` +
     `Click the link below to chat directly with the finder and arrange the return:\n${chatUrl}\n\n` +
     `_This is a secure private chat powered by WeSafe QR._`
-
-  const token = import.meta.env.VITE_WHATSAPP_USER_ID
-  const url =
-    `https://wts.vision360solutions.co.in/api/sendText` +
-    `?token=${token}&phone=91${normalised}&message=${encodeURIComponent(message)}`
-
-  console.log('[WeSafe] Sending WhatsApp to 91' + normalised)
-
-  fetch(url)
-    .then(r => console.log('[WeSafe] WhatsApp response status:', r.status))
-    .catch(err => console.error('[WeSafe] WhatsApp fetch error:', err))
+  dispatchWhatsApp(normalised, message)
 }
 
 // ─── Messaging ────────────────────────────────────────────────────────────────

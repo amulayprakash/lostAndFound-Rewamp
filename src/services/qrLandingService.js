@@ -58,19 +58,32 @@ export async function fetchItemData(productId) {
 }
 
 export async function fetchOwnerContact(uid, childId) {
-  if (!uid || !childId) return {}
+  if (!uid || !childId) {
+    console.warn('[WeSafe] fetchOwnerContact: missing uid or childId', { uid, childId })
+    return {}
+  }
   try {
     const ref = doc(db, 'Users', uid, 'ChildList', childId, 'data', 'personal_information')
     const snap = await getDoc(ref)
-    if (!snap.exists()) return {}
+    if (!snap.exists()) {
+      console.warn('[WeSafe] fetchOwnerContact: document not found at', ref.path)
+      return {}
+    }
     const d = snap.data()
+    console.log('[WeSafe] fetchOwnerContact: raw fields', Object.keys(d))
+    const phone =
+      d.phone || d['Phone'] || d['Phone Number'] || d['Mobile'] ||
+      d['phoneNumber'] || d['mobile'] || d['contact'] || d['contactNumber'] || ''
+    console.log('[WeSafe] fetchOwnerContact: resolved phone =', JSON.stringify(phone))
+    if (!phone) console.warn('[WeSafe] fetchOwnerContact: no phone field found in document')
     return {
       name: d.name || d['Full Name'] || d['fullName'] || '',
-      phone: d.phone || d['Phone'] || d['Phone Number'] || d['Mobile'] || '',
+      phone,
       photoURL: d.photoURL || d['Photo URL'] || d['profilePhoto'] || '',
       email: d.email || d['Email'] || '',
     }
-  } catch {
+  } catch (err) {
+    console.error('[WeSafe] fetchOwnerContact error:', err)
     return {}
   }
 }

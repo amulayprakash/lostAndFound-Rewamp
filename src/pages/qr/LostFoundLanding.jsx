@@ -54,7 +54,10 @@ export default function LostFoundLanding({ passcode, qrData, itemData, ownerCont
   const description = itemData?.description || qrData?.description || ''
   const wordFromOwner = itemData?.wordFromOwner || qrData?.wordFromOwner || ''
   const ownerName = ownerContact?.name || itemData?.ownerName || qrData?.ownerName || 'Owner'
-  const phone = ownerContact?.phone || ''
+  const phone =
+    ownerContact?.phone ||
+    itemData?.phone || itemData?.['Phone'] || itemData?.['Phone Number'] || itemData?.['Mobile'] ||
+    qrData?.phone || qrData?.['Phone'] || ''
 
   const handleCall = () => {
     if (phone) window.location.href = `tel:${phone}`
